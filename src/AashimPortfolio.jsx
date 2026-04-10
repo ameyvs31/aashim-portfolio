@@ -133,14 +133,31 @@ const S = {
 function useInView(threshold = 0.15) {
   const ref = useRef(null);
   const [visible, setVisible] = useState(false);
+
   useEffect(() => {
-    const obs = new IntersectionObserver(
-      ([e]) => { if (e.isIntersecting) setVisible(true); },
-      { threshold }
-    );
-    if (ref.current) obs.observe(ref.current);
-    return () => obs.disconnect();
-  }, []);
+  const obs = new IntersectionObserver(
+    ([entry]) => {
+      if (entry.isIntersecting) {
+        setVisible(true);
+      }
+    },
+    { threshold }
+  );
+
+  const currentRef = ref.current;
+
+  if (currentRef) {
+    obs.observe(currentRef);
+  }
+
+  return () => {
+    if (currentRef) {
+      obs.unobserve(currentRef);
+    }
+    obs.disconnect();
+  };
+}, [threshold]); // ✅ THIS IS THE FIX
+
   return [ref, visible];
 }
 
